@@ -1,0 +1,30 @@
+{
+    "name": "joby/smol-query",
+    "description": "A lightweight and simple SQLite query builder.",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": ">=8.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Joby\\Smol\\Query\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Joby\\Smol\\Query\\": "tests/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Joby Elliott",
+            "email": "code@joby.lol"
+        }
+    ],
+    "require-dev": {
+        "php": ">=8.3",
+        "phpunit/phpunit": "^12.1",
+        "phpstan/phpstan": "^2.1"
+    }
+}
