@@ -43,7 +43,7 @@ $db->delete('users')
     ->execute();
 ```
 
-## SELECT Queries
+## Select Queries
 
 ### Fetching
 
@@ -67,7 +67,7 @@ foreach ($query->fetchColumn('email') as $email) {
 $count = $query->count();
 ```
 
-### WHERE Clauses
+### Where Clauses
 
 ```php
 // Shorthand column = value
@@ -90,7 +90,7 @@ $query->whereLike('name', 'alice%', case_insensitive: true);
 
 Multiple `where()` calls are AND'd together. For OR logic, use a single raw statement.
 
-### Projections, Order, Limit, Offset
+### Column selection, Order, Limit, Offset
 
 ```php
 $db->select('users')
@@ -119,7 +119,7 @@ $query->hydrate(null);
 
 Parameters and values accept scalars, `Stringable` objects, backed enums (automatically unwrapped), callables (lazily evaluated), and `null`.
 
-## INSERT Queries
+## Insert Queries
 
 ```php
 // Single row
@@ -136,7 +136,7 @@ $db->insert('users')
 
 `execute()` returns the number of rows inserted.
 
-## UPDATE Queries
+## Update Queries
 
 ```php
 // Single value
@@ -157,7 +157,7 @@ $db->update('users', ['name' => 'Alicia'])->where('id', 123)->execute();
 
 `execute()` returns the number of affected rows. Without a WHERE clause, an exception is thrown unless you pass `execute(without_where: true)`.
 
-## DELETE Queries
+## Delete Queries
 
 ```php
 $db->delete('users')->where('id', 123)->execute();
