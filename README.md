@@ -165,6 +165,36 @@ $db->delete('users')->where('id', 123)->execute();
 
 Same `without_where` safety guard as UPDATE.
 
+## Joins
+```php
+// INNER JOIN — only rows with matches in both tables
+$db->select('posts')
+    ->join('users', 'users.id = posts.user_id')
+    ->where('users.active', 1)
+    ->fetchAll();
+
+// LEFT JOIN — all rows from the left table, nulls for unmatched right table columns
+$db->select('users')
+    ->leftJoin('posts', 'posts.user_id = users.id')
+    ->fetchAll();
+
+// Multiple joins
+$db->select('order_items')
+    ->join('users', 'users.id = order_items.user_id')
+    ->join('products', 'products.id = order_items.product_id')
+    ->fetchAll();
+```
+
+By default, joined queries select `*` from all tables. If joined tables have columns with the same name, use explicit column selection to avoid collisions:
+```php
+$db->select('posts')
+    ->join('users', 'users.id = posts.user_id')
+    ->column('posts.id')
+    ->column('posts.title')
+    ->column('users.name')
+    ->fetchAll();
+```
+
 ## Migrations
 
 ```php

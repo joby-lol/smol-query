@@ -30,6 +30,15 @@ class SelectQueryTest extends TestCase
         $this->db->pdo->exec("INSERT INTO foo (name, value) VALUES ('beta', 2)");
         $this->db->pdo->exec("INSERT INTO foo (name, value) VALUES ('gamma', 3)");
         $this->db->pdo->exec("INSERT INTO foo (name, value) VALUES ('Alpha', 4)");
+        // additional table for JOIN tests
+        $this->db->pdo->exec('CREATE TABLE bar (
+         id INTEGER PRIMARY KEY AUTOINCREMENT,
+         foo_id INTEGER REFERENCES foo(id),
+         label TEXT
+     )');
+        $this->db->pdo->exec("INSERT INTO bar (foo_id, label) VALUES (1, 'bar_alpha')");
+        $this->db->pdo->exec("INSERT INTO bar (foo_id, label) VALUES (2, 'bar_beta')");
+        // intentionally no row for foo id=3 or id=4, to test LEFT JOIN behavior
     }
 
     // --- fetch() ---
@@ -422,6 +431,104 @@ class SelectQueryTest extends TestCase
     {
         $this->expectException(\InvalidArgumentException::class);
         $this->db->select('foo')->offset(-1);
+    }
+
+    // --- JOIN tests ---
+
+    public function test_join_returns_rows_from_both_tables(): void
+    {
+        $results = iterator_to_array(
+            $this->db->select('foo')
+                ->join('bar', 'bar.foo_id = foo.id')
+                ->fetchAll(),
+        );
+        $this->assertCount(2, $results);
+    }
+
+    public function test_join_auto_qualifies_columns_from_all_tables(): void
+    {
+        $row = $this->db->select('foo')
+            ->join('bar', 'bar.foo_id = foo.id')
+            ->where('foo.id', 1)
+            ->fetch();
+        $this->assertArrayHasKey('id', $row);
+        $this->assertArrayHasKey('label', $row);
+    }
+
+    public function test_join_excludes_rows_with_no_match(): void
+    {
+        // foo ids 3 and 4 have no matching bar rows
+        $results = iterator_to_array(
+            $this->db->select('foo')
+                ->join('bar', 'bar.foo_id = foo.id')
+                ->fetchAll(),
+        );
+        $ids = array_column($results, 'foo.id');
+        $this->assertNotContains(3, $ids);
+        $this->assertNotContains(4, $ids);
+    }
+
+    public function test_left_join_includes_rows_with_no_match(): void
+    {
+        $results = iterator_to_array(
+            $this->db->select('foo')
+                ->leftJoin('bar', 'bar.foo_id = foo.id')
+                ->fetchAll(),
+        );
+        $this->assertCount(4, $results);
+    }
+
+    public function test_left_join_nulls_missing_columns(): void
+    {
+        $results = iterator_to_array(
+            $this->db->select('foo')
+                ->leftJoin('bar', 'bar.foo_id = foo.id')
+                ->where('foo.id', 3)
+                ->fetchAll(),
+        );
+        $this->assertCount(1, $results);
+        $this->assertNull($results[0]['bar.label']);
+    }
+
+    public function test_join_with_explicit_columns_overrides_auto_qualify(): void
+    {
+        $row = $this->db->select('foo')
+            ->join('bar', 'bar.foo_id = foo.id')
+            ->column('foo.name')
+            ->where('foo.id', 1)
+            ->fetch();
+        $this->assertArrayHasKey('name', $row);
+        $this->assertArrayNotHasKey('bar.label', $row);
+    }
+
+    public function test_join_where_clause_can_reference_joined_table(): void
+    {
+        $results = iterator_to_array(
+            $this->db->select('foo')
+                ->join('bar', 'bar.foo_id = foo.id')
+                ->where('bar.label', 'bar_alpha')
+                ->fetchAll(),
+        );
+        $this->assertCount(1, $results);
+        $this->assertEquals('alpha', $results[0]['name']);
+    }
+
+    public function test_multiple_joins(): void
+    {
+        // This test requires a third table — skip if your setUp doesn't have one,
+        // or add: CREATE TABLE baz (bar_id INTEGER, note TEXT)
+        // and INSERT INTO baz VALUES (1, 'baz_note')
+        $this->db->pdo->exec('CREATE TABLE baz (bar_id INTEGER, note TEXT)');
+        $this->db->pdo->exec("INSERT INTO baz (bar_id, note) VALUES (1, 'baz_note')");
+
+        $results = iterator_to_array(
+            $this->db->select('foo')
+                ->join('bar', 'bar.foo_id = foo.id')
+                ->join('baz', 'baz.bar_id = bar.id')
+                ->fetchAll(),
+        );
+        $this->assertCount(1, $results);
+        $this->assertArrayHasKey('note', $results[0]);
     }
 
 }

@@ -13,7 +13,6 @@ use Generator;
 use InvalidArgumentException;
 use Joby\Smol\Query\Traits\ColumnListTrait;
 use Joby\Smol\Query\Traits\LimitOffsetTrait;
-use Joby\Smol\Query\Traits\OffsetTrait;
 use Joby\Smol\Query\Traits\OrderListTrait;
 use Joby\Smol\Query\Traits\WhereClauseTrait;
 use PDO;
@@ -46,6 +45,12 @@ class SelectQuery extends AbstractQuery
 
     protected PDOStatement|null $fetch_statement = null;
 
+    /**
+     * List of joins, each includes its type (i.e. JOIN or LEFT OUTER JOIN), the table name, the ON statement
+     * @var array<array{type:string,table:string,on:string}> $joins
+     */
+    protected array $joins = [];
+
     public function __construct(
         DB $db,
         public readonly string $table,
@@ -71,11 +76,52 @@ class SelectQuery extends AbstractQuery
         $sql[] = $this->sql_columns();
         $sql[] = "FROM";
         $sql[] = $this->table;
+        $sql[] = $this->sql_joins();
         $sql[] = $this->sql_where();
         $sql[] = $this->sql_order();
         $sql[] = $this->sql_limit_offset();
         $sql = array_filter($sql, fn($l) => $l !== '');
         return implode(PHP_EOL, $sql);
+    }
+
+    /**
+     * Add an inner join to this query on the given table using the given ON statement.
+     */
+    public function join(string $table, string $on_statement): static
+    {
+        $this->joins[] = [
+            'type'  => 'JOIN',
+            'table' => $table,
+            'on'    => $on_statement,
+        ];
+        return $this;
+    }
+
+    public function leftJoin(string $table, string $on_statement): static
+    {
+        $this->joins[] = [
+            'type'  => 'LEFT OUTER JOIN',
+            'table' => $table,
+            'on'    => $on_statement,
+        ];
+        return $this;
+    }
+
+    /**
+     * Helper function for constructing SQL from joins
+     */
+    protected function sql_joins(): string
+    {
+        return implode(PHP_EOL, array_map(
+            /** @param array{type:string,table:string,on:string} $join */
+            fn(array $join): string => sprintf(
+                '%s %s ON %s',
+                $join['type'],
+                $join['table'],
+                $join['on'],
+            ),
+            $this->joins,
+        ));
     }
 
     /**
