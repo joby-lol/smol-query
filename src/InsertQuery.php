@@ -10,6 +10,7 @@
 namespace Joby\Smol\Query;
 
 use BackedEnum;
+use Closure;
 use RuntimeException;
 use Stringable;
 
@@ -19,7 +20,7 @@ class InsertQuery extends AbstractQuery
     /**
      * List of rows to insert, with keys as column names and values as values
      * 
-     * @var array<int,array<string,string|Stringable|BackedEnum|int|float|bool|null|(callable():(string|Stringable|BackedEnum|int|float|bool|null))>>
+     * @var array<int,array<string,string|Stringable|BackedEnum|int|float|bool|null|(Closure():(string|Stringable|BackedEnum|int|float|bool|null))>>
      */
     protected array $rows = [];
 
@@ -48,7 +49,7 @@ class InsertQuery extends AbstractQuery
     /**
      * Queue a row of data to be added to the database. The keys of the first row added define the structure that all following rows must follow.
      * 
-     * @param array<string,string|Stringable|BackedEnum|int|float|bool|null|(callable():(string|Stringable|BackedEnum|int|float|bool|null))> $row
+     * @param array<string,string|Stringable|BackedEnum|int|float|bool|null|(Closure():(string|Stringable|BackedEnum|int|float|bool|null))> $row
      */
     public function row(array $row): static
     {

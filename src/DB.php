@@ -10,6 +10,7 @@
 namespace Joby\Smol\Query;
 
 use BackedEnum;
+use Closure;
 use PDO;
 use Stringable;
 
@@ -50,7 +51,7 @@ class DB
     /**
      * Create a new UPDATE query on the given table. Optionally set the values right here in the constructor.
      * 
-     * @param array<string,string|Stringable|BackedEnum|int|float|bool|(callable(mixed...):(string|Stringable|BackedEnum|int|float|bool))> $values
+     * @param array<string,string|Stringable|BackedEnum|int|float|bool|(Closure(mixed...):(string|Stringable|BackedEnum|int|float|bool))> $values
      */
     public function update(string $table, array $values = []): UpdateQuery
     {

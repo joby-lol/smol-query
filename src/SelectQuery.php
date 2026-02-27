@@ -216,7 +216,7 @@ class SelectQuery extends AbstractQuery
         }
         // if it's a callable set the callback and unset the class
         elseif (is_callable($callback_or_class)) {
-            // @phpstan-ignore-next-line it is actually right, but this is pushign the limits of phpstan
+            // @phpstan-ignore-next-line it is actually right, but this is pushiing the limits of phpstan
             $this->hydrate_callback = $callback_or_class;
             $this->hydrate_class = null;
         }

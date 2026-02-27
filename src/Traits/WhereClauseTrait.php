@@ -10,15 +10,16 @@
 namespace Joby\Smol\Query\Traits;
 
 use BackedEnum;
+use Closure;
 use Stringable;
 
 trait WhereClauseTrait
 {
 
     /**
-     * List of parameter values to be used in WHERE clauses. May by scalar, Stringable, BackedEnum, or a callable that returns the same.
+     * List of parameter values to be used in WHERE clauses. May by scalar, Stringable, BackedEnum, or a Closure that returns the same.
      * 
-     * @var array<int,string|Stringable|BackedEnum|int|float|bool|(callable(mixed...):(string|Stringable|BackedEnum|int|float|bool))> $where_parameters
+     * @var array<int,string|Stringable|BackedEnum|int|float|bool|(Closure(mixed...):(string|Stringable|BackedEnum|int|float|bool))> $where_parameters
      */
     protected array $where_parameters = [];
 
@@ -29,15 +30,15 @@ trait WhereClauseTrait
     protected array $where_clauses = [];
 
     /**
-     * Add a WHERE clause to this query. Allows both full statements or column names with a single parameter. Parameters may be a single scalar, Stringable, BackedEnum, or a callable that returns the same, or an array of such values.
+     * Add a WHERE clause to this query. Allows both full statements or column names with a single parameter. Parameters may be a single scalar, Stringable, BackedEnum, or a Closure that returns the same, or an array of such values.
      * 
      * When using the shorthand of ->where('column','value') an optional third parameter may be used to specify an operator (defaults to =).
      * 
-     * @param string|Stringable|BackedEnum|int|float|bool|(callable(mixed...):(string|Stringable|BackedEnum|int|float|bool))|array<string|Stringable|BackedEnum|int|float|bool|(callable(mixed...):(string|Stringable|BackedEnum|int|float|bool))> $parameter_or_parameters
+     * @param string|Stringable|BackedEnum|int|float|bool|(Closure(mixed...):(string|Stringable|BackedEnum|int|float|bool))|array<string|Stringable|BackedEnum|int|float|bool|(Closure(mixed...):(string|Stringable|BackedEnum|int|float|bool))> $parameter_or_parameters
      */
     public function where(
         string $column_or_statement,
-        string|Stringable|BackedEnum|int|float|bool|callable|array $parameter_or_parameters = [],
+        string|Stringable|BackedEnum|int|float|bool|Closure|array $parameter_or_parameters = [],
         string|null $operator = null,
     ): static
     {
@@ -113,11 +114,11 @@ trait WhereClauseTrait
     /**
      * Normalize input parameters to become an array. Accepts a single valid parameter value, or an array of them, and turns it into an int-indexed array of values.
      * 
-     * @param string|Stringable|BackedEnum|int|float|bool|(callable(mixed...):(string|Stringable|BackedEnum|int|float|bool))|array<string|Stringable|BackedEnum|int|float|bool|(callable(mixed...):(string|Stringable|BackedEnum|int|float|bool))> $parameter_or_parameters
-     * @return array<string|Stringable|BackedEnum|int|float|bool|(callable(mixed...):(string|Stringable|BackedEnum|int|float|bool))>
+     * @param string|Stringable|BackedEnum|int|float|bool|(Closure(mixed...):(string|Stringable|BackedEnum|int|float|bool))|array<string|Stringable|BackedEnum|int|float|bool|(Closure(mixed...):(string|Stringable|BackedEnum|int|float|bool))> $parameter_or_parameters
+     * @return array<string|Stringable|BackedEnum|int|float|bool|(Closure(mixed...):(string|Stringable|BackedEnum|int|float|bool))>
      */
     protected function normalizeWhereParameters(
-        string|Stringable|BackedEnum|int|float|bool|callable|array $parameter_or_parameters,
+        string|Stringable|BackedEnum|int|float|bool|Closure|array $parameter_or_parameters,
     ): array
     {
         if (is_array($parameter_or_parameters))

@@ -10,6 +10,7 @@
 namespace Joby\Smol\Query;
 
 use BackedEnum;
+use Closure;
 use Joby\Smol\Query\Traits\ValueListTrait;
 use Joby\Smol\Query\Traits\WhereClauseTrait;
 use RuntimeException;
@@ -22,7 +23,7 @@ class UpdateQuery extends AbstractQuery
     use WhereClauseTrait;
 
     /**
-     * @param array<string,string|Stringable|BackedEnum|int|float|bool|(callable(mixed...):(string|Stringable|BackedEnum|int|float|bool))> $values
+     * @param array<string,string|Stringable|BackedEnum|int|float|bool|(Closure(mixed...):(string|Stringable|BackedEnum|int|float|bool))> $values
      */
     public function __construct(
         DB $db,

@@ -117,7 +117,7 @@ $query->hydrate(User::class);
 $query->hydrate(null);
 ```
 
-Parameters and values accept scalars, `Stringable` objects, backed enums (automatically unwrapped), callables (lazily evaluated), and `null`.
+Parameters and values accept scalars, `Stringable` objects, backed enums (automatically unwrapped), Closures (lazily evaluated), and `null`.
 
 ## Insert Queries
 

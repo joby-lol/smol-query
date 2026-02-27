@@ -10,6 +10,7 @@
 namespace Joby\Smol\Query;
 
 use BackedEnum;
+use Closure;
 use Stringable;
 
 abstract class AbstractQuery
@@ -30,16 +31,16 @@ abstract class AbstractQuery
     abstract public function parameters(): array;
 
     /**
-     * Given a list of parameter values, which may by scalar, Stringable, BackedEnum, or a callable that returns the same, compile them down to scalar values only for final binding to a query. This should be called on the final parameter list before executing a query.
+     * Given a list of parameter values, which may by scalar, Stringable, BackedEnum, or a closure that returns the same, compile them down to scalar values only for final binding to a query. This should be called on the final parameter list before executing a query.
      * 
-     * @param array<int,string|Stringable|BackedEnum|int|float|bool|null|(callable():(string|Stringable|BackedEnum|int|float|bool|null))>  $parameters
+     * @param array<int,string|Stringable|BackedEnum|int|float|bool|null|(Closure():(string|Stringable|BackedEnum|int|float|bool|null))>  $parameters
      * @return array<int,string|int|float|null>
      */
     protected function finalizeParameterList(array $parameters): array
     {
         return array_map(
             function ($v): string|int|float|null {
-                if (is_callable($v))
+                if ($v instanceof Closure)
                     return $v(); // @phpstan-ignore-line this just can't really be type-checked
                 if ($v instanceof Stringable)
                     return (string) $v;
