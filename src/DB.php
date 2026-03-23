@@ -49,6 +49,16 @@ class DB
     }
 
     /**
+     * Create a new "Upsert" query, which will be executed using SQLite's ON CONFLICT ... DO UPDATE mechanism. Defaults to detecting conflicts via the "id" column, but can be configured via `conflictColumns()`. You must also specify which columns will be updated via `updateColumns()`.
+     * 
+     * Allows upserting multiple rows in a single query similar to insert.
+     */
+    public function upsert(string $table): UpsertQuery
+    {
+        return new UpsertQuery($this, $table);
+    }
+
+    /**
      * Create a new UPDATE query on the given table. Optionally set the values right here in the constructor.
      * 
      * @param array<string,string|Stringable|BackedEnum|int|float|bool|(Closure(mixed...):(string|Stringable|BackedEnum|int|float|bool))> $values

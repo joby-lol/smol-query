@@ -33,6 +33,11 @@ class DBTest extends TestCase
         $this->assertInstanceOf(InsertQuery::class, $this->db->insert('foo'));
     }
 
+    public function test_upsert_returns_upsert_query(): void
+    {
+        $this->assertInstanceOf(UpsertQuery::class, $this->db->upsert('foo'));
+    }
+
     public function test_update_returns_update_query(): void
     {
         $this->assertInstanceOf(UpdateQuery::class, $this->db->update('foo'));

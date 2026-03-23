@@ -165,6 +165,43 @@ $db->delete('users')->where('id', 123)->execute();
 
 Same `without_where` safety guard as UPDATE.
 
+## Upsert Queries
+```php
+// Insert or update on conflict
+// updates all non-conflict columns by default, with conflict column defaulting to 'id'
+$db->upsert('users')
+    ->row(['id' => 1, 'name' => 'Alice', 'email' => 'alice@example.com'])
+    ->execute();
+
+// Explicit conflict column (defaults to 'id')
+$db->upsert('users')
+    ->conflictColumns('email')
+    ->row(['name' => 'Alice', 'email' => 'alice@example.com'])
+    ->execute();
+
+// Composite conflict columns
+$db->upsert('user_roles')
+    ->conflictColumns(['user_id', 'role'])
+    ->row(['user_id' => 1, 'role' => 'admin', 'granted_at' => time()])
+    ->execute();
+
+// Partial update — only update specific columns on conflict, preserve the rest
+$db->upsert('users')
+    ->updateColumns(['name', 'email'])
+    ->row(['id' => 1, 'name' => 'Alice', 'email' => 'alice@example.com', 'created_at' => time()])
+    ->execute();
+
+// Multiple rows
+$db->upsert('users')
+    ->row(['id' => 1, 'name' => 'Alice', 'email' => 'alice@example.com'])
+    ->row(['id' => 2, 'name' => 'Bob', 'email' => 'bob@example.com'])
+    ->execute();
+```
+
+By default, all columns not used for conflict detection are updated. Use `updateColumns()` to restrict which columns are written on conflict.
+
+`execute()` returns the number of affected rows. The conflict target must match an existing primary key or unique constraint.
+
 ## Joins
 ```php
 // INNER JOIN — only rows with matches in both tables
