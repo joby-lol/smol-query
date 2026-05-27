@@ -176,6 +176,8 @@ class SelectQuery extends AbstractQuery implements Countable
 
     /**
      * Count the results that would be returned from this query.
+     * 
+     * @return int<0,max>
      */
     public function count(): int
     {
@@ -183,6 +185,7 @@ class SelectQuery extends AbstractQuery implements Countable
             'SELECT COUNT(*) FROM (' . $this->sql() . ')'
         );
         $statement->execute($this->parameters());
+        // @phpstan-ignore-next-line we can trust SQL here
         return (int) $statement->fetchColumn();
     }
 
