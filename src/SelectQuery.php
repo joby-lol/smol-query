@@ -9,6 +9,7 @@
 
 namespace Joby\Smol\Query;
 
+use Countable;
 use Generator;
 use InvalidArgumentException;
 use Joby\Smol\Query\Traits\ColumnListTrait;
@@ -21,7 +22,7 @@ use PDOStatement;
 /**
  * @template ReturnType of mixed
  */
-class SelectQuery extends AbstractQuery
+class SelectQuery extends AbstractQuery implements Countable
 {
 
     use ColumnListTrait;
