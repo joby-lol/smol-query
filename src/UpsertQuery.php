@@ -12,6 +12,11 @@ namespace Joby\Smol\Query;
 use Joby\Smol\Query\InsertQuery;
 use RuntimeException;
 
+/**
+ * Query for updating records or inserting them if they do not already exist.
+ * 
+ * @phpstan-consistent-constructor
+ */
 class UpsertQuery extends InsertQuery
 {
 

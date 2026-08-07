@@ -56,4 +56,69 @@ class DBTest extends TestCase
         $this->assertFalse($result);
     }
 
+    public function test_select_custom_class_returns_specified_class(): void
+    {
+        $this->assertInstanceOf(
+            CustomSelectQuery::class,
+            $this->db->select('test', CustomSelectQuery::class),
+        );
+    }
+
+    public function test_insert_custom_class_returns_specified_class(): void
+    {
+        $this->assertInstanceOf(
+            CustomInsertQuery::class,
+            $this->db->insert('test', CustomInsertQuery::class),
+        );
+    }
+
+    public function test_upsert_custom_class_returns_specified_class(): void
+    {
+        $this->assertInstanceOf(
+            CustomUpsertQuery::class,
+            $this->db->upsert('test', CustomUpsertQuery::class),
+        );
+    }
+
+    public function test_update_custom_class_returns_specified_class(): void
+    {
+        $this->assertInstanceOf(
+            CustomUpdateQuery::class,
+            $this->db->update('test', [], CustomUpdateQuery::class),
+        );
+    }
+
+    public function test_delete_custom_class_returns_specified_class(): void
+    {
+        $this->assertInstanceOf(
+            CustomDeleteQuery::class,
+            $this->db->delete('test', CustomDeleteQuery::class),
+        );
+    }
+
+}
+
+class CustomSelectQuery extends SelectQuery
+{
+
+}
+
+class CustomInsertQuery extends InsertQuery
+{
+
+}
+
+class CustomUpsertQuery extends UpsertQuery
+{
+
+}
+
+class CustomUpdateQuery extends UpdateQuery
+{
+
+}
+
+class CustomDeleteQuery extends DeleteQuery
+{
+
 }

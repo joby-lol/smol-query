@@ -14,6 +14,11 @@ use Closure;
 use RuntimeException;
 use Stringable;
 
+/**
+ * Query for inserting records.
+ * 
+ * @phpstan-consistent-constructor
+ */
 class InsertQuery extends AbstractQuery
 {
 

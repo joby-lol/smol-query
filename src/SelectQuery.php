@@ -20,6 +20,9 @@ use PDO;
 use PDOStatement;
 
 /**
+ * Query for selecting/sorting records.
+ * 
+ * @phpstan-consistent-constructor
  * @template ReturnType of mixed
  */
 class SelectQuery extends AbstractQuery implements Countable

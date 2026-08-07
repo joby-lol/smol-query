@@ -12,6 +12,11 @@ namespace Joby\Smol\Query;
 use Joby\Smol\Query\Traits\WhereClauseTrait;
 use RuntimeException;
 
+/**
+ * Query for deleting records.
+ * 
+ * @phpstan-consistent-constructor
+ */
 class DeleteQuery extends AbstractQuery
 {
 

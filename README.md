@@ -232,6 +232,15 @@ $db->select('posts')
     ->fetchAll();
 ```
 
+## Custom query classes
+
+If you would like to extend the included query classes, such as to add your own helper methods for common operations, you can pass your own class name to the DB methods that create them:
+```php
+$db->select('posts',YourCustomSelectClass::class)
+    ->customFilter()
+    ->fetchAll();
+```
+
 ## Migrations
 
 ```php
@@ -267,7 +276,7 @@ $migrator = new Migrator('/path/to/database.db', log_table: '_schema_versions');
 
 ## Requirements
 
-Fully tested on PHP 8.3+, static analysis for PHP 8.1+. Requires the `pdo_sqlite` and `sqlite3` PHP extensions (both enabled by default in most PHP installations).
+Fully tested on PHP 8.3+. Requires the `pdo_sqlite` and `sqlite3` PHP extensions (both enabled by default in most PHP installations).
 
 ## License
 

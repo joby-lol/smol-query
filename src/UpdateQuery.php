@@ -16,6 +16,11 @@ use Joby\Smol\Query\Traits\WhereClauseTrait;
 use RuntimeException;
 use Stringable;
 
+/**
+ * Query for updating records.
+ * 
+ * @phpstan-consistent-constructor
+ */
 class UpdateQuery extends AbstractQuery
 {
 
