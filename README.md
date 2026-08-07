@@ -1,6 +1,6 @@
 # smolQuery
 
-A lightweight SQLite query builder and migration tool for PHP 8.1+.
+A lightweight SQLite query builder and migration tool for PHP 8.3+.
 
 ## Installation
 
