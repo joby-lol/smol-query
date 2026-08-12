@@ -33,7 +33,7 @@ class Migrator
     /**
      * Get a database instance for this migrator. Lazy-instantiated.
      */
-    protected function db(): SQLite3
+    public function db(): SQLite3
     {
         return $this->db
             ??= $this->instantiateDb();
