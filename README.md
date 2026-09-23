@@ -1,6 +1,6 @@
 # smolQuery
 
-A lightweight SQLite query builder and migration tool for PHP 8.3+.
+A lightweight SQLite query builder and migration tool for PHP 8.4+.
 
 ## Installation
 
@@ -276,7 +276,7 @@ $migrator = new Migrator('/path/to/database.db', log_table: '_schema_versions');
 
 ## Requirements
 
-Fully tested on PHP 8.3+. Requires the `pdo_sqlite` and `sqlite3` PHP extensions (both enabled by default in most PHP installations).
+Fully tested on PHP 8.4+. Requires the `pdo_sqlite` and `sqlite3` PHP extensions (both enabled by default in most PHP installations).
 
 ## License
 

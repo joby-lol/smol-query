@@ -12,18 +12,19 @@ namespace Joby\Smol\Query;
 use BackedEnum;
 use Closure;
 use PDO;
+use Pdo\Sqlite;
 use Stringable;
 
 class DB
 {
 
-    public readonly PDO $pdo;
+    public readonly Sqlite $pdo;
 
     public readonly string $filename;
 
     public function __construct(string|Stringable $filename)
     {
-        $this->pdo = new PDO('sqlite:' . $filename);
+        $this->pdo = new Sqlite('sqlite:' . $filename);
         $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $this->pdo->exec('PRAGMA case_sensitive_like = 1');
         $this->filename = (string) $filename;
