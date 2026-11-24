@@ -25,7 +25,9 @@ class UpdateQueryTest extends TestCase
             name TEXT,
             value INTEGER,
             flag INTEGER,
-            nullable TEXT NULL
+            nullable TEXT NULL,
+            json_data TEXT NULL,
+            json_other TEXT NULL
         )');
         $this->db->pdo->exec("INSERT INTO foo (name, value, flag) VALUES ('alpha', 1, 0)");
         $this->db->pdo->exec("INSERT INTO foo (name, value, flag) VALUES ('beta', 2, 0)");
@@ -268,4 +270,326 @@ class UpdateQueryTest extends TestCase
         $this->assertEquals('from_stringable', $this->fetchRow(1)['name']);
     }
 
+    // --- jsonSet() and jsonRemove() ---
+
+    public function test_json_set_adds_property(): void
+    {
+        $this->db->pdo->exec("UPDATE foo SET json_data = '{}'");
+
+        $this->db->update('foo')
+            ->jsonSet('json_data', '$.foo', 'bar')
+            ->where('id', 1)
+            ->execute();
+
+        $this->assertSame(
+            ['foo' => 'bar'],
+            json_decode($this->fetchRow(1)['json_data'], true)
+        );
+        $this->assertSame('{}', $this->fetchRow(2)['json_data']);
+    }
+
+    public function test_json_set_overwrites_existing_property(): void
+    {
+        $this->db->pdo->exec("UPDATE foo SET json_data = '{\"foo\":1,\"bar\":2}'");
+
+        $this->db->update('foo')
+            ->jsonSet('json_data', '$.foo', 99)
+            ->where('id', 1)
+            ->execute();
+
+        $this->assertSame(
+            ['foo' => 99, 'bar' => 2],
+            json_decode($this->fetchRow(1)['json_data'], true)
+        );
+    }
+
+    public function test_json_set_initializes_null_column(): void
+    {
+        $this->db->update('foo')
+            ->jsonSet('json_data', '$.foo', 'bar')
+            ->where('id', 1)
+            ->execute();
+
+        $this->assertSame(
+            ['foo' => 'bar'],
+            json_decode($this->fetchRow(1)['json_data'], true)
+        );
+        $this->assertNull($this->fetchRow(2)['json_data']);
+    }
+
+    public function test_json_set_preserves_json_types(): void
+    {
+        $expected = [
+            'string' => '123',
+            'integer' => 123,
+            'float' => 1.25,
+            'true' => true,
+            'false' => false,
+            'null' => null,
+            'array' => [1, 2, 3],
+            'object' => ['foo' => 'bar'],
+            'json_string' => '{"foo":"bar"}',
+        ];
+
+        $query = $this->db->update('foo')->where('id', 1);
+
+        foreach ($expected as $key => $value)
+            $query->jsonSet('json_data', '$.' . $key, $value);
+
+        $query->execute();
+
+        $this->assertSame(
+            $expected,
+            json_decode($this->fetchRow(1)['json_data'], true)
+        );
+    }
+
+    public function test_json_set_preserves_empty_object(): void
+    {
+        $this->db->update('foo')
+            ->jsonSet('json_data', '$.object', new \stdClass())
+            ->jsonSet('json_data', '$.array', [])
+            ->where('id', 1)
+            ->execute();
+
+        $data = json_decode($this->fetchRow(1)['json_data']);
+
+        $this->assertInstanceOf(\stdClass::class, $data->object);
+        $this->assertSame([], $data->array);
+    }
+
+    public function test_json_set_updates_nested_property(): void
+    {
+        $this->db->pdo->exec(
+            "UPDATE foo SET json_data = '{\"nested\":{\"a\":1,\"b\":2}}'"
+        );
+
+        $this->db->update('foo')
+            ->jsonSet('json_data', '$.nested.a', 99)
+            ->where('id', 1)
+            ->execute();
+
+        $this->assertSame(
+            ['nested' => ['a' => 99, 'b' => 2]],
+            json_decode($this->fetchRow(1)['json_data'], true)
+        );
+    }
+
+    public function test_json_set_overwrites_pending_set(): void
+    {
+        $this->db->update('foo')
+            ->jsonSet('json_data', '$.foo', 'first')
+            ->jsonSet('json_data', '$.foo', 'second')
+            ->where('id', 1)
+            ->execute();
+
+        $this->assertSame(
+            ['foo' => 'second'],
+            json_decode($this->fetchRow(1)['json_data'], true)
+        );
+    }
+
+    public function test_json_remove_removes_property(): void
+    {
+        $this->db->pdo->exec("UPDATE foo SET json_data = '{\"a\":1,\"b\":2}'");
+
+        $this->db->update('foo')
+            ->jsonRemove('json_data', '$.a')
+            ->where('id', 1)
+            ->execute();
+
+        $this->assertSame(
+            ['b' => 2],
+            json_decode($this->fetchRow(1)['json_data'], true)
+        );
+        $this->assertSame(
+            ['a' => 1, 'b' => 2],
+            json_decode($this->fetchRow(2)['json_data'], true)
+        );
+    }
+
+    public function test_json_remove_removes_multiple_properties(): void
+    {
+        $this->db->pdo->exec(
+            "UPDATE foo SET json_data = '{\"a\":1,\"b\":2,\"c\":3}'"
+        );
+
+        $this->db->update('foo')
+            ->jsonRemove('json_data', '$.a')
+            ->jsonRemove('json_data', '$.c')
+            ->where('id', 1)
+            ->execute();
+
+        $this->assertSame(
+            ['b' => 2],
+            json_decode($this->fetchRow(1)['json_data'], true)
+        );
+    }
+
+    public function test_json_remove_ignores_missing_property(): void
+    {
+        $this->db->pdo->exec("UPDATE foo SET json_data = '{\"a\":1}'");
+
+        $this->db->update('foo')
+            ->jsonRemove('json_data', '$.nonexistent')
+            ->where('id', 1)
+            ->execute();
+
+        $this->assertSame(
+            ['a' => 1],
+            json_decode($this->fetchRow(1)['json_data'], true)
+        );
+    }
+
+    public function test_json_remove_preserves_null_column(): void
+    {
+        $this->db->update('foo')
+            ->jsonRemove('json_data', '$.foo')
+            ->where('id', 1)
+            ->execute();
+
+        $this->assertNull($this->fetchRow(1)['json_data']);
+    }
+
+    public function test_json_remove_deduplicates_pending_removal(): void
+    {
+        $this->db->pdo->exec("UPDATE foo SET json_data = '[1,2,3]'");
+
+        $this->db->update('foo')
+            ->jsonRemove('json_data', '$[0]')
+            ->jsonRemove('json_data', '$[0]')
+            ->where('id', 1)
+            ->execute();
+
+        $this->assertSame(
+            [2, 3],
+            json_decode($this->fetchRow(1)['json_data'], true)
+        );
+    }
+
+    public function test_json_set_cancels_pending_remove(): void
+    {
+        $this->db->pdo->exec("UPDATE foo SET json_data = '{\"foo\":1}'");
+
+        $this->db->update('foo')
+            ->jsonRemove('json_data', '$.foo')
+            ->jsonSet('json_data', '$.foo', 2)
+            ->where('id', 1)
+            ->execute();
+
+        $this->assertSame(
+            ['foo' => 2],
+            json_decode($this->fetchRow(1)['json_data'], true)
+        );
+    }
+
+    public function test_json_remove_cancels_pending_set(): void
+    {
+        $this->db->pdo->exec("UPDATE foo SET json_data = '{}'");
+
+        $this->db->update('foo')
+            ->jsonSet('json_data', '$.foo', 1)
+            ->jsonRemove('json_data', '$.foo')
+            ->where('id', 1)
+            ->execute();
+
+        $this->assertSame(
+            '{}',
+            $this->fetchRow(1)['json_data']
+        );
+    }
+
+    public function test_json_updates_can_target_multiple_columns(): void
+    {
+        $this->db->pdo->exec(
+            "UPDATE foo SET json_data = '{\"a\":1}', json_other = '{\"b\":2}'"
+        );
+
+        $this->db->update('foo')
+            ->jsonSet('json_data', '$.c', 3)
+            ->jsonSet('json_other', '$.d', 4)
+            ->jsonRemove('json_data', '$.a')
+            ->jsonRemove('json_other', '$.b')
+            ->where('id', 1)
+            ->execute();
+
+        $row = $this->fetchRow(1);
+
+        $this->assertSame(
+            ['c' => 3],
+            json_decode($row['json_data'], true)
+        );
+        $this->assertSame(
+            ['d' => 4],
+            json_decode($row['json_other'], true)
+        );
+    }
+
+    public function test_json_updates_can_be_combined_with_regular_updates(): void
+    {
+        $this->db->pdo->exec(
+            "UPDATE foo SET json_data = '{\"a\":1,\"b\":2}'"
+        );
+
+        $count = $this->db->update('foo')
+            ->value('name', 'changed')
+            ->jsonSet('json_data', '$.c', 3)
+            ->where('id', 1)
+            ->jsonRemove('json_data', '$.a')
+            ->value('value', 99)
+            ->jsonSet('json_other', '$.d', 4)
+            ->where('flag', 0)
+            ->execute();
+
+        $this->assertSame(1, $count);
+
+        $row = $this->fetchRow(1);
+
+        $this->assertSame('changed', $row['name']);
+        $this->assertEquals(99, $row['value']);
+        $this->assertSame(
+            ['b' => 2, 'c' => 3],
+            json_decode($row['json_data'], true)
+        );
+        $this->assertSame(
+            ['d' => 4],
+            json_decode($row['json_other'], true)
+        );
+
+        $this->assertSame('beta', $this->fetchRow(2)['name']);
+    }
+
+    public function test_json_set_throws_without_where_clause(): void
+    {
+        $this->expectException(RuntimeException::class);
+
+        $this->db->update('foo')
+            ->jsonSet('json_data', '$.foo', 1)
+            ->execute();
+    }
+
+    public function test_json_remove_throws_without_where_clause(): void
+    {
+        $this->expectException(RuntimeException::class);
+
+        $this->db->update('foo')
+            ->jsonRemove('json_data', '$.foo')
+            ->execute();
+    }
+
+    public function test_json_update_allows_no_where_with_flag(): void
+    {
+        $count = $this->db->update('foo')
+            ->jsonSet('json_data', '$.foo', 1)
+            ->execute(true);
+
+        $this->assertSame(3, $count);
+
+        foreach ($this->fetchAll() as $row) {
+            $this->assertSame(
+                ['foo' => 1],
+                json_decode($row['json_data'], true)
+            );
+        }
+    }
 }

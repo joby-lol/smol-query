@@ -232,6 +232,24 @@ $db->select('posts')
     ->fetchAll();
 ```
 
+## JSON updates
+
+Update queries can also make atomic, in-place updates and removals from JSON columns without changing the rest of the JSON data. These operations can be combined with regular column updates:
+
+```php
+$db->update('foo')
+    ->jsonSet('data', '$.name', 'example')
+    ->jsonSet('data', '$.settings.enabled', true)
+    ->jsonRemove('data', '$.obsolete')
+    ->value('status', 'active')
+    ->where('id', 1)
+    ->execute();
+```
+
+Values passed to `jsonSet()` are automatically JSON-encoded, and SQL NULL columns are initialized as empty JSON objects when setting values. Setting a path to `null` stores a JSON null; use `jsonRemove()` to delete it entirely.
+
+Sets are applied before removals. When modifying overlapping paths or array indexes, the caller is responsible for ensuring the desired behavior.
+
 ## Custom query classes
 
 If you would like to extend the included query classes, such as to add your own helper methods for common operations, you can pass your own class name to the DB methods that create them:
