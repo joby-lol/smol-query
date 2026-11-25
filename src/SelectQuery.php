@@ -187,7 +187,9 @@ class SelectQuery extends AbstractQuery implements Countable
         $statement = $this->db->pdo->prepare(
             'SELECT COUNT(*) FROM (' . $this->sql() . ')'
         );
-        $statement->execute($this->parameters());
+        foreach ($this->parameters() as $key => $value)
+            $statement->bindValue($key + 1, $value, $this->paramType($value));
+        $statement->execute();
         // @phpstan-ignore-next-line we can trust SQL here
         return (int) $statement->fetchColumn();
     }
@@ -198,7 +200,9 @@ class SelectQuery extends AbstractQuery implements Countable
     protected function newFetchStatement(bool $no_hydration = false): PDOStatement
     {
         $statement = $this->db->pdo->prepare($this->sql());
-        $statement->execute($this->parameters());
+        foreach ($this->parameters() as $key => $value)
+            $statement->bindValue($key + 1, $value, $this->paramType($value));
+        $statement->execute();
         if ($this->hydrate_class && !$no_hydration)
             $statement->setFetchMode(PDO::FETCH_CLASS | PDO::FETCH_PROPS_LATE, $this->hydrate_class);
         else

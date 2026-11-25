@@ -43,7 +43,9 @@ class DeleteQuery extends AbstractQuery
         if (!$this->where_clauses && !$without_where)
             throw new RuntimeException('Must manually select $without_where to allow deletes without a where clause');
         $statement = $this->db->pdo->prepare($this->sql());
-        $statement->execute($this->parameters());
+        foreach ($this->parameters() as $key => $value)
+            $statement->bindValue($key + 1, $value, $this->paramType($value));
+        $statement->execute();
         return $statement->rowCount();
     }
 

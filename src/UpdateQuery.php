@@ -36,7 +36,8 @@ class UpdateQuery extends AbstractQuery
         DB $db,
         public readonly string $table,
         array $values = [],
-    ) {
+    )
+    {
         parent::__construct($db);
         $this->values($values);
     }
@@ -58,7 +59,9 @@ class UpdateQuery extends AbstractQuery
         if (!$this->where_clauses && !$without_where)
             throw new RuntimeException('Must manually select $without_where to allow updates without a where clause');
         $statement = $this->db->pdo->prepare($this->sql());
-        $statement->execute($this->parameters());
+        foreach ($this->parameters() as $key => $value)
+            $statement->bindValue($key + 1, $value, $this->paramType($value));
+        $statement->execute();
         return $statement->rowCount();
     }
 
@@ -92,4 +95,5 @@ class UpdateQuery extends AbstractQuery
             array_keys($this->value_list),
         );
     }
+
 }

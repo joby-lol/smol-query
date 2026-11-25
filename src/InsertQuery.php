@@ -117,8 +117,9 @@ class InsertQuery extends AbstractQuery
             ->prepare($this->sql());
         if ($statement === false)
             throw new RuntimeException('Error preparing statement for InsertQuery');
-        $result = $statement
-            ->execute($this->parameters());
+        foreach ($this->parameters() as $key => $value)
+            $statement->bindValue($key + 1, $value, $this->paramType($value));
+        $result = $statement->execute();
         if ($result === false)
             throw new RuntimeException('Error executing statement for InsertQuery');
         return $statement->rowCount();
